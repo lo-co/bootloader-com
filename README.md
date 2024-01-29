@@ -20,7 +20,7 @@ When the image is installed, update the system using the following:
 ```
 sudo apt update
 sudo apt upgrade -y
-sudo apt install rpi.gpio
+sudo apt-get install rpi.gpio
 ```
 
 If there is any difficulty with the network, the IP address may have to be changed according to the interface or SSID.  This can be done by right clicking
@@ -35,6 +35,16 @@ reset the EVK and 2) toggle the ISP pin.  The pin layout on the Raspberry Pi 3B 
 
 For this application, we are using the GPIO pins located pins 3 and 5.  In the application, the BCM numbering is used where pin 3 is referred to as GPIO 2 and
 is used to toggle the ISP line and pin 5 is GPIO 3 and is used to toggle the reset line.
+
+As the outputs from the Raspberry Pi are 3.3 V when high, they must be reduced to the VDDIO range (1.8 V) for the NXP in order to not create issues with VCCIO.
+For the ISP2 line, the input is attached to the ground side of switch 5 which is tied to a 1 kOhm resistor.  To reduce the input from 3.3 to 1.8, simply run
+the Raspberry Pi output through approximately 830 Ohms.  For the reset line, use a voltage dvidier where R1 is 10 kOhms and R2 is 12 kOhms.
+
+The UART port that the Raspberry Pi can be one of the following:
+
+* /dev/ttyACM0
+* /dev/ttyAMA0
+
 
 ### The Secure Provisioning Toolkit
 
@@ -99,6 +109,19 @@ shorting pins 2-3 on JP21.
 7. Release reset.
 
 After this process, the system should boot into the application that has been flashed.
+
+To run the script, first the virtual environment has to be activated.  Then the script itself should be called as follows:
+
+```
+cd [path to spdk]/spsdk
+source .venv/bin/activate
+cd [path to scripts]
+
+python src/test-py.py --comm_port /dev/ttyACM0 --baud 926100
+```
+
+In the call, both the comm port and baud rate values can be omitted if the user wishes only to use the default values as shown
+above.
 
 When running the script, the flash config block (FCB) has to be properly configured so that the MCU can access the memory
 located there.  After successfully configuring the block, the FCB is printed to screen and should look like the following:
